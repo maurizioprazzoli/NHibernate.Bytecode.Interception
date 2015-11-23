@@ -1,0 +1,22 @@
+﻿<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2"
+                   assembly="Model"
+                   namespace="Model">
+
+  <class name="Bid" lazy="true">
+    <cache usage="read-write"/>
+
+    <id name="Id" type="Guid">
+      <generator class="assigned"/>
+    </id>
+
+    <version name="Version" type="integer" >
+      <column default="0" name="Version" />
+    </version>
+
+    <property name="Description" />
+
+    <many-to-one name="Item" column="idItem" class="Item" lazy ="false"/>
+
+  </class>
+
+</hibernate-mapping>
