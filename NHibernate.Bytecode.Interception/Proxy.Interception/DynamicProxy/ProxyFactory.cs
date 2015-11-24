@@ -272,11 +272,6 @@ namespace NHibernate.Proxy.Interception.DynamicProxy
                 IL.Emit(OpCodes.Callvirt, addValue);
             }
 
-            IL.Emit(OpCodes.Ldarg_1);
-            IL.Emit(OpCodes.Ldstr, "__bytecodeProviderInterceptor");
-            IL.Emit(OpCodes.Ldstr, typeof(IBytecodeProviderInterceptor));
-            IL.Emit(OpCodes.Callvirt, addValue);
-
             IL.Emit(OpCodes.Ret);
         }
 

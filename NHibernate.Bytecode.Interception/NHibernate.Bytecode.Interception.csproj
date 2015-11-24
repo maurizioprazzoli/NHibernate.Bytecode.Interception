@@ -49,6 +49,7 @@
   <ItemGroup>
     <Compile Include="Bytecode.Interception\AbstractBytecodeProvider.cs" />
     <Compile Include="Bytecode.Interception\ActivatorObjectsFactory.cs" />
+    <Compile Include="Bytecode.Interception\CodeDom\BytecodeProviderImpl.cs" />
     <Compile Include="Bytecode.Interception\DefaultProxyFactoryFactory.cs" />
     <Compile Include="Bytecode.Interception\Lightweight\BytecodeProviderImpl.cs" />
     <Compile Include="Bytecode.Interception\NullBytecodeProvider.cs" />
@@ -66,9 +67,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Bytecode.Interception\CodeDom\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
