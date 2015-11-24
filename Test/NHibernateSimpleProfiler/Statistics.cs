@@ -27,6 +27,11 @@ namespace NHibernateSimpleProfiler
         public long SecondLevelCacheMissCount;
         public long SecondLevelCachePutCount;
 
+        public long? NumberOfSQLSelectStatement;
+        public long? NumberOfSQLInsertStatement;
+        public long? NumberOfSQLUpdateStatement;
+        public long? NumberOfSQLDeleteStatement;
+
         public static Statistics operator -(Statistics left, Statistics right)
         {
             Statistics statistics = new Statistics();
@@ -52,6 +57,11 @@ namespace NHibernateSimpleProfiler
             statistics.SecondLevelCacheHitCount = left.SecondLevelCacheHitCount - right.SecondLevelCacheHitCount;
             statistics.SecondLevelCacheMissCount = left.SecondLevelCacheMissCount - right.SecondLevelCacheMissCount;
             statistics.SecondLevelCachePutCount = left.SecondLevelCachePutCount - right.SecondLevelCachePutCount;
+
+            statistics.NumberOfSQLSelectStatement = left.NumberOfSQLSelectStatement - right.NumberOfSQLSelectStatement;
+            statistics.NumberOfSQLInsertStatement = left.NumberOfSQLInsertStatement - right.NumberOfSQLInsertStatement;
+            statistics.NumberOfSQLUpdateStatement = left.NumberOfSQLUpdateStatement - right.NumberOfSQLUpdateStatement;
+            statistics.NumberOfSQLDeleteStatement = left.NumberOfSQLDeleteStatement - right.NumberOfSQLDeleteStatement;
 
             return statistics;
         }
@@ -82,7 +92,20 @@ namespace NHibernateSimpleProfiler
             statistics.SecondLevelCacheMissCount = inputStat.SecondLevelCacheMissCount;
             statistics.SecondLevelCachePutCount = inputStat.SecondLevelCachePutCount;
 
+            statistics.NumberOfSQLSelectStatement = null;
+            statistics.NumberOfSQLInsertStatement = null;
+            statistics.NumberOfSQLUpdateStatement = null;
+            statistics.NumberOfSQLDeleteStatement = null;
+
             return statistics;
+        }
+
+        internal void UpdateSqlLogSpyStatistics(SqlLogSpyStatistics sqlLogSpyStatistics)
+        {
+            this.NumberOfSQLSelectStatement = sqlLogSpyStatistics.NumberOfSQLSelectStatement;
+            this.NumberOfSQLInsertStatement = sqlLogSpyStatistics.NumberOfSQLInsertStatement;
+            this.NumberOfSQLUpdateStatement = sqlLogSpyStatistics.NumberOfSQLUpdateStatement;
+            this.NumberOfSQLDeleteStatement = sqlLogSpyStatistics.NumberOfSQLDeleteStatement;
         }
     }
 

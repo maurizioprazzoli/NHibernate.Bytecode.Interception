@@ -55,6 +55,12 @@ namespace TestInterceptionLeazyLoading
             if (useNHibernateSimpleProfiler)
             {
                 cfg.SetProperty(NHibernate.Cfg.Environment.GenerateStatistics, "true");
+                cfg.SetProperty(NHibernate.Cfg.Environment.ShowSql, "true");
+            }
+            else
+            {
+                cfg.SetProperty(NHibernate.Cfg.Environment.GenerateStatistics, "false");
+                cfg.SetProperty(NHibernate.Cfg.Environment.ShowSql, "false");
             }
 
             NHibernate.Cfg.Environment.BytecodeProvider = new NHibernate.Bytecode.Interception.Lightweight.BytecodeProviderImpl(new CustomBytecodeProviderInterceptor());
@@ -66,6 +72,7 @@ namespace TestInterceptionLeazyLoading
             if (useNHibernateSimpleProfiler)
             {
                 NHibernateSimpleProfiler.Profiler.SetSessionFactory = sessionFactory;
+                log4net.Config.XmlConfigurator.Configure();
             }
 
             return sessionFactory;

@@ -1,5 +1,6 @@
 ﻿using NHibernate;
 using NHibernate.Stat;
+using System;
 using System.Collections.Generic;
 
 namespace NHibernateSimpleProfiler
@@ -8,6 +9,7 @@ namespace NHibernateSimpleProfiler
     {
         private static ISessionFactory sessionFactory;
         private static Stack<Statistics> snapshotStack;
+        private static SqlLogSpyStatistics sqlLogSpyStatistics;
 
         public static ISessionFactory SetSessionFactory
         {
@@ -15,7 +17,7 @@ namespace NHibernateSimpleProfiler
             {
                 if (value == null || !value.Statistics.IsStatisticsEnabled)
                 {
-                    throw new NHibernateSimpleProfilerException("NHibernate session factory has not statistics enabled, please anable befor call this. See generate_statistics");
+                    throw new NHibernateSimpleProfilerException("NHibernate session factory has not statistics enabled, please enable befor call this. See generate_statistics");
                 }
 
                 sessionFactory = value;
@@ -31,17 +33,51 @@ namespace NHibernateSimpleProfiler
             }
 
             Statistics currentStatisticsSnapshot = (Statistics)(StatisticsImpl)sessionFactory.Statistics;
+            currentStatisticsSnapshot.UpdateSqlLogSpyStatistics(sqlLogSpyStatistics);
             snapshotStack.Push(currentStatisticsSnapshot);
         }
 
         public static Statistics GetDifferenceFromLastSnapshot()
         {
-            if (snapshotStack.Count >= 1)
+            if (snapshotStack.Count < 1)
             {
-
+                throw new NHibernateSimpleProfilerException("No Snapshot found!");
             }
             Statistics currentStatisticsSnapshot = (Statistics)(StatisticsImpl)sessionFactory.Statistics;
+            currentStatisticsSnapshot.UpdateSqlLogSpyStatistics(sqlLogSpyStatistics);
             return currentStatisticsSnapshot - snapshotStack.Peek();
         }
+
+        public static Statistics GetDifferenceFromLastSnapshotAndTakeSnapshot()
+        {
+            if (snapshotStack.Count < 1)
+            {
+                throw new NHibernateSimpleProfilerException("No Snapshot found!");
+            }
+            Statistics currentStatisticsSnapshot = (Statistics)(StatisticsImpl)sessionFactory.Statistics;
+            currentStatisticsSnapshot.UpdateSqlLogSpyStatistics(sqlLogSpyStatistics);
+            snapshotStack.Push(currentStatisticsSnapshot);
+            return currentStatisticsSnapshot - snapshotStack.Peek();
+        }
+
+        public static SqlLogSpy LogSpy
+        {
+            get
+            {
+                var sqlLogSpy = new SqlLogSpy();
+                sqlLogSpy.SqlLogSpyStatisticsUpdated += new SqlLogSpyStatisticsUpdated(updatedSqlLogSpyStatistics);
+                return sqlLogSpy;
+            }
+        }
+
+      // This will be called whenever the list changes.
+        private static void updatedSqlLogSpyStatistics(SqlLogSpyStatistics updatedSqlLogSpyStatistics, EventArgs e) 
+      {
+          sqlLogSpyStatistics.NumberOfSQLSelectStatement += updatedSqlLogSpyStatistics.NumberOfSQLSelectStatement;
+          sqlLogSpyStatistics.NumberOfSQLInsertStatement += updatedSqlLogSpyStatistics.NumberOfSQLInsertStatement;
+          sqlLogSpyStatistics.NumberOfSQLUpdateStatement += updatedSqlLogSpyStatistics.NumberOfSQLUpdateStatement;
+          sqlLogSpyStatistics.NumberOfSQLDeleteStatement += updatedSqlLogSpyStatistics.NumberOfSQLDeleteStatement;
+      }
+
     }
 }

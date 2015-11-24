@@ -1,8 +1,10 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Model;
 using NHibernate;
+using NHibernateSimpleProfiler;
 using System;
 using System.Collections.Generic;
+using TestInterceptionLeazyLoading.Interception;
 
 namespace TestInterceptionLeazyLoading
 {
@@ -20,7 +22,50 @@ namespace TestInterceptionLeazyLoading
         }
 
         [TestMethod]
-        public void SaveObjectNoInterceptionConfiguration()
+        public void SaveObject()
+        {
+            // Generate Guid
+            Guid item_guid = Guid.NewGuid();
+            Guid bid1_guid = Guid.NewGuid();
+            Guid bid2_guid = Guid.NewGuid();
+
+            // Create item and bids
+            Item item = new Item();
+            item.Id = item_guid;
+            item.Description = "Item Description";
+            item.AddBid(bid1_guid, "Bid1 Description");
+            item.AddBid(bid2_guid, "Bid2 Description");
+
+            // Reset counter
+            Profiler.TakeSnapshot();
+            CustomBytecodeProviderInterceptorCounter.ResetCounter();
+
+            using (var session = sessionFactory.OpenSession())
+            {
+                using (var tx = session.BeginTransaction())
+                {
+                    using (var sqlLogSpy = Profiler.LogSpy)
+                    {
+                        session.Save(item);
+                        tx.Commit();
+                    }
+                }
+            }
+
+            var statics = Profiler.GetDifferenceFromLastSnapshot();
+
+            // No call
+            Assert.IsTrue(CustomBytecodeProviderInterceptorCounter.CreateInstance == 0);
+            Assert.IsTrue(CustomBytecodeProviderInterceptorCounter.CreateProxyInstance == 0);
+
+            Assert.IsTrue(statics.NumberOfSQLSelectStatement == 0);
+            Assert.IsTrue(statics.NumberOfSQLInsertStatement == 2);
+            Assert.IsTrue(statics.NumberOfSQLUpdateStatement == 0);
+            Assert.IsTrue(statics.NumberOfSQLDeleteStatement == 0);
+        }
+
+        [TestMethod]
+        public void SaveObjectAndGetObject()
         {
             Guid item_guid = Guid.NewGuid();
             Guid bid1_guid = Guid.NewGuid();
@@ -33,17 +78,6 @@ namespace TestInterceptionLeazyLoading
             item.AddBid(bid1_guid, "Bid1 Description");
             item.AddBid(bid2_guid, "Bid2 Description");
 
-            Assert.IsTrue(item.Id == item_guid);
-            Assert.IsTrue(item.Description == "Item Description");
-
-            Assert.IsTrue(item.Bids[0].Id == bid1_guid);
-            Assert.IsTrue(item.Bids[0].Description == "Bid1 Description");
-
-            Assert.IsTrue(item.Bids[1].Id == bid2_guid);
-            Assert.IsTrue(item.Bids[1].Description == "Bid2 Description");
-
-            StaticCounterHelper.ResetCounter();
-
             using (var session = sessionFactory.OpenSession())
             {
                 using (var tx = session.BeginTransaction())
@@ -52,10 +86,40 @@ namespace TestInterceptionLeazyLoading
                     tx.Commit();
                 }
             }
+
+            // Reset counter
+            Profiler.TakeSnapshot();
+            CustomBytecodeProviderInterceptorCounter.ResetCounter();
+
+            Item itemRetrieved;
+            using (var session = sessionFactory.OpenSession())
+            {
+                using (var tx = session.BeginTransaction())
+                {
+                    using (var sqlLogSpy = Profiler.LogSpy)
+                    {
+                        itemRetrieved = session.Get<Item>(item_guid);
+                        tx.Commit();
+                    }
+                }
+            }
+
+            var statics = Profiler.GetDifferenceFromLastSnapshot();
+
+            // No Instance Bid since is lazy
+            Assert.IsTrue(CustomBytecodeProviderInterceptorCounter.CreateInstance == 0);
+            // Item must be proxyed
+            Assert.IsTrue(CustomBytecodeProviderInterceptorCounter.CreateProxyInstance == 1);
+
+            Assert.IsTrue(statics.NumberOfSQLSelectStatement == 1);
+            Assert.IsTrue(statics.NumberOfSQLInsertStatement == 0);
+            Assert.IsTrue(statics.NumberOfSQLUpdateStatement == 0);
+            Assert.IsTrue(statics.NumberOfSQLDeleteStatement == 0);
+
         }
 
         [TestMethod]
-        public void SaveObjectAndGetObjectNoInterceptionConfiguration()
+        public virtual void SaveObjectAndGetObjectClosedSessionExceptionForLeazyLoading()
         {
             Guid item_guid = Guid.NewGuid();
             Guid bid1_guid = Guid.NewGuid();
@@ -87,59 +151,28 @@ namespace TestInterceptionLeazyLoading
                 }
             }
 
-        }
-
-        [TestMethod]
-        public virtual void SaveObjectAndGetObjectNoInterceptionConfigurationExceptionForLeazyLoadingField()
-        {
-            Guid item_guid = Guid.NewGuid();
-            Guid bid1_guid = Guid.NewGuid();
-            Guid bid2_guid = Guid.NewGuid();
-
-            Item item = new Item();
-            item.Id = item_guid;
-            item.Description = "Item Description";
-
-            item.AddBid(bid1_guid, "Bid1 Description");
-            item.AddBid(bid2_guid, "Bid2 Description");
-
-            using (var session = sessionFactory.OpenSession())
-            {
-                using (var tx = session.BeginTransaction())
-                {
-                    session.Save(item);
-                    tx.Commit();
-                }
-            }
-
-            Item itemRetrieved;
-            using (var session = sessionFactory.OpenSession())
-            {
-                using (var tx = session.BeginTransaction())
-                {
-                    itemRetrieved = session.Get<Item>(item_guid);
-                    tx.Commit();
-                }
-            }
-
-            Int32 numberOfException = 0;
+            Int32 numberOfLazyInitializationException = 0;
             try
             {
                 Assert.IsTrue(itemRetrieved.Id == item_guid);
             }
-            catch
+            catch (LazyInitializationException ex)
             {
-                numberOfException++;
+                numberOfLazyInitializationException++;
             }
+            catch
+            { }
 
             try
             {
                 Assert.IsTrue(itemRetrieved.Description == "Item Description");
             }
-            catch
+            catch (LazyInitializationException ex)
             {
-                numberOfException++;
+                numberOfLazyInitializationException++;
             }
+            catch
+            { }
 
             try
             {
@@ -151,16 +184,18 @@ namespace TestInterceptionLeazyLoading
                 }
 
             }
-            catch
+            catch (LazyInitializationException ex)
             {
-                numberOfException++;
+                numberOfLazyInitializationException++;
             }
+            catch
+            { }
 
-            Assert.IsTrue(numberOfException == 2);
+            Assert.IsTrue(numberOfLazyInitializationException == 2);
         }
 
         [TestMethod]
-        public virtual void SaveObjectAndGetObjectNoInterceptionConfigurationNoExceptionForLeazyLoadingField()
+        public virtual void SaveObjectAndGetObjectKeepSessionOpenNoExceptionForLeazyLoadingField()
         {
             Guid item_guid = Guid.NewGuid();
             Guid bid1_guid = Guid.NewGuid();
@@ -183,50 +218,125 @@ namespace TestInterceptionLeazyLoading
             }
 
             Item itemRetrieved;
-            Int32 numberOfException = 0;
+            Int32 numberOfLazyInitializationException = 0;
+
+            // Reset counter
+            Profiler.TakeSnapshot();
+            CustomBytecodeProviderInterceptorCounter.ResetCounter();
 
             using (var session = sessionFactory.OpenSession())
             {
                 using (var tx = session.BeginTransaction())
                 {
-                    itemRetrieved = session.Get<Item>(item_guid);
-                    tx.Commit();
-                }
 
-                try
-                {
-                    Assert.IsTrue(itemRetrieved.Id == item_guid);
-                }
-                catch
-                {
-                    numberOfException++;
-                }
-
-                try
-                {
-                    Assert.IsTrue(itemRetrieved.Description == "Item Description");
-                }
-                catch
-                {
-                    numberOfException++;
-                }
-
-                try
-                {
-                    foreach (Bid bid in itemRetrieved.Bids)
+                    using (var sqlLogSpy = Profiler.LogSpy)
                     {
-                        Assert.IsTrue(bid.Id != default(Guid));
-                        Assert.IsTrue(bid.Description != String.Empty);
+                        itemRetrieved = session.Get<Item>(item_guid);
+                        tx.Commit();
+                    }
+                }
+
+                var statics = Profiler.GetDifferenceFromLastSnapshot();
+
+                // No Instance Bid since is lazy
+                Assert.IsTrue(CustomBytecodeProviderInterceptorCounter.CreateInstance == 0);
+                // Item must be proxyed
+                Assert.IsTrue(CustomBytecodeProviderInterceptorCounter.CreateProxyInstance == 1);
+
+                Assert.IsTrue(statics.NumberOfSQLSelectStatement == 1);
+                Assert.IsTrue(statics.NumberOfSQLInsertStatement == 0);
+                Assert.IsTrue(statics.NumberOfSQLUpdateStatement == 0);
+                Assert.IsTrue(statics.NumberOfSQLDeleteStatement == 0);
+
+                // Reset counter
+                Profiler.TakeSnapshot();
+                CustomBytecodeProviderInterceptorCounter.ResetCounter();
+
+                using (var sqlLogSpy = Profiler.LogSpy)
+                {
+                    try
+                    {
+                        Assert.IsTrue(itemRetrieved.Id == item_guid);
+                    }
+                    catch (LazyInitializationException ex)
+                    {
+                        numberOfLazyInitializationException++;
+                    }
+                    catch
+                    { }
+                }
+                statics = Profiler.GetDifferenceFromLastSnapshot();
+
+                // No Instance Bid since is lazy
+                Assert.IsTrue(CustomBytecodeProviderInterceptorCounter.CreateInstance == 0);
+                Assert.IsTrue(CustomBytecodeProviderInterceptorCounter.CreateProxyInstance == 0);
+
+                Assert.IsTrue(statics.NumberOfSQLSelectStatement == 0);
+                Assert.IsTrue(statics.NumberOfSQLInsertStatement == 0);
+                Assert.IsTrue(statics.NumberOfSQLUpdateStatement == 0);
+                Assert.IsTrue(statics.NumberOfSQLDeleteStatement == 0);
+
+                // Reset counter
+                Profiler.TakeSnapshot();
+                CustomBytecodeProviderInterceptorCounter.ResetCounter();
+
+                using (var sqlLogSpy = Profiler.LogSpy)
+                {
+                    try
+                    {
+                        Assert.IsTrue(itemRetrieved.Description == "Item Description");
+                    }
+                    catch (LazyInitializationException ex)
+                    {
+                        numberOfLazyInitializationException++;
+                    }
+                    catch
+                    { }
+                }
+                statics = Profiler.GetDifferenceFromLastSnapshot();
+
+                // No Instance Bid since is lazy
+                Assert.IsTrue(CustomBytecodeProviderInterceptorCounter.CreateInstance == 0);
+                Assert.IsTrue(CustomBytecodeProviderInterceptorCounter.CreateProxyInstance == 0);
+
+                Assert.IsTrue(statics.NumberOfSQLSelectStatement == 1);
+                Assert.IsTrue(statics.NumberOfSQLInsertStatement == 0);
+                Assert.IsTrue(statics.NumberOfSQLUpdateStatement == 0);
+                Assert.IsTrue(statics.NumberOfSQLDeleteStatement == 0);
+
+                // Reset counter
+                Profiler.TakeSnapshot();
+
+                CustomBytecodeProviderInterceptorCounter.ResetCounter();
+                using (var sqlLogSpy = Profiler.LogSpy)
+                {
+                    try
+                    {
+                        foreach (Bid bid in itemRetrieved.Bids)
+                        {
+                            Assert.IsTrue(bid.Id != default(Guid));
+                            Assert.IsTrue(bid.Description != String.Empty);
+
+                        }
 
                     }
+                    catch (LazyInitializationException ex)
+                    {
+                        numberOfLazyInitializationException++;
+                    }
+                    catch
+                    { }
+                }
+                // Two Instance Bid
+                Assert.IsTrue(CustomBytecodeProviderInterceptorCounter.CreateInstance == 0);
+                Assert.IsTrue(CustomBytecodeProviderInterceptorCounter.CreateProxyInstance == 0);
 
-                }
-                catch
-                {
-                    numberOfException++;
-                }
+                Assert.IsTrue(statics.NumberOfSQLSelectStatement == 1);
+                Assert.IsTrue(statics.NumberOfSQLInsertStatement == 0);
+                Assert.IsTrue(statics.NumberOfSQLUpdateStatement == 0);
+                Assert.IsTrue(statics.NumberOfSQLDeleteStatement == 0);
             }
-            Assert.IsTrue(numberOfException == 0);
+            Assert.IsTrue(numberOfLazyInitializationException == 0);
         }
 
         public abstract void ComposeConfiguration(Dictionary<string, string> configuration);
