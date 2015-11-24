@@ -11,7 +11,7 @@ namespace NHibernate.Bytecode.Interception
         protected System.Type proxyFactoryFactory;
         private ICollectionTypeFactory collectionTypeFactory;
         private System.Type collectionTypeFactoryClass;
-        private IBytecodeProviderInterceptor interceptor;
+        protected IBytecodeProviderInterceptor interceptor;
 
         #region ctor
         public AbstractBytecodeProvider()

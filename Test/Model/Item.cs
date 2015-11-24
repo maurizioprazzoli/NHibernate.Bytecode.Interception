@@ -25,6 +25,7 @@ namespace Model
 
         public Item()
         {
+            EntityCreationCounterHelper.NewItemCall++;
             this.Bids = new List<Bid>();
         }
 

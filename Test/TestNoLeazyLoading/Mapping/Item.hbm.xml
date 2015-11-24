@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2"
+                   assembly="Model"
+                   namespace="Model">
+
+  <class name="Item" lazy="false">
+    <cache usage="read-write"/>
+
+    <id name="Id" type="Guid">
+      <generator class="assigned" />
+    </id>
+
+    <version name="Version" type="integer" >
+      <column default="0" name="Version" />
+    </version>
+
+    <property name="Description" lazy="false"/>
+
+    <bag name="Bids" lazy="false" inverse="true" cascade="all">
+      <cache usage="read-write"/>
+      <key column="idItem"></key>
+      <one-to-many class="Bid" />
+    </bag>
+
+  </class>
+
+</hibernate-mapping>

@@ -33,7 +33,7 @@ namespace NHibernate.Bytecode.Interception.Lightweight
 		/// <returns><see langword="null" /> if the generation fails</returns>
 		public override IReflectionOptimizer GetReflectionOptimizer(System.Type mappedClass, IGetter[] getters, ISetter[] setters)
 		{
-			return new ReflectionOptimizer(mappedClass, getters, setters);
+            return new ReflectionOptimizer(mappedClass, getters, setters, interceptor);
 		}
 
 		#endregion

@@ -14,7 +14,9 @@ namespace Model
         public virtual string Description { get; set; }
 
         public Bid()
-        { }
+        {
+            EntityCreationCounterHelper.NewBidCall++;
+        }
 
         public override string ToString()
         {

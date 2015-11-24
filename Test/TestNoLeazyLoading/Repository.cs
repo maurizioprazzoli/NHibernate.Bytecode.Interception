@@ -6,9 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Reflection;
-using TestInterceptionLeazyLoading.Interception;
 
-namespace TestInterceptionLeazyLoading
+namespace TestNoLeazyLoading
 {
     public class NHConfiguration
     {

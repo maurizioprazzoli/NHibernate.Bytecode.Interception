@@ -1,14 +1,15 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 
-namespace TestInterceptionLeazyLoading
+namespace TestNoLeazyLoading
 {
     [TestClass]
-    public class TestUnityInterceptionSecondLevelCache : BaseUnityInterception
+    public class TestNoInterceptionNoSecondLevelCache : BaseTest
     {
         public override void ComposeConfiguration(Dictionary<string, string> configuration)
         {
-            configuration.Add("DataSource", "ITCPC1MAPR1");
+            configuration.Add("DataSource", @"ITCPC1MAPR1\SQLEXPRESS");
             configuration.Add("UserId", "sa");
             configuration.Add("Password", "maurizio");
             configuration.Add("Database", "NHibernate_UnityBytecodeProvider");
@@ -16,7 +17,7 @@ namespace TestInterceptionLeazyLoading
             configuration.Add("DropAndCreateDatabaseSchema", "True");
             configuration.Add("UseSecondLevelCache", "False");
             configuration.Add("UseNHibernateSimpleProfiler", "True");
-            configuration.Add("ConfigurationAssembly", "TestInterceptionLeazyLoading");
+            configuration.Add("ConfigurationAssembly", "TestNoLeazyLoading");
         }
     }
 }

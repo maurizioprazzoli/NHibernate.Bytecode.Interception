@@ -24,7 +24,7 @@ namespace NHibernate.Bytecode.Interception
             return null;
         }
 
-        public virtual object CreateProxyInstance(System.Type type)
+        public virtual object CreateProxyInstance(System.Type proxyType)
         {
             return null;
         }

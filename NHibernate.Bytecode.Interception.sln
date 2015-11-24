@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model", "Test\Model\Model.c
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NHibernateSimpleProfiler", "Test\NHibernateSimpleProfiler\NHibernateSimpleProfiler.csproj", "{BA5D2364-E0BC-4BD5-A46D-206349863886}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestNoLeazyLoading", "Test\TestNoLeazyLoading\TestNoLeazyLoading.csproj", "{09B3FA36-2E68-438F-88FE-AC11839DF857}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +37,10 @@ Global
 		{BA5D2364-E0BC-4BD5-A46D-206349863886}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BA5D2364-E0BC-4BD5-A46D-206349863886}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BA5D2364-E0BC-4BD5-A46D-206349863886}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09B3FA36-2E68-438F-88FE-AC11839DF857}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09B3FA36-2E68-438F-88FE-AC11839DF857}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09B3FA36-2E68-438F-88FE-AC11839DF857}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09B3FA36-2E68-438F-88FE-AC11839DF857}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -43,5 +49,6 @@ Global
 		{C5FD4347-A402-4225-9401-A0FFF80D038F} = {AD32C2ED-BF0F-4B5E-B8D5-515D29006EA9}
 		{1E06CE71-B6F6-4CE4-9236-0395FDD74D39} = {AD32C2ED-BF0F-4B5E-B8D5-515D29006EA9}
 		{BA5D2364-E0BC-4BD5-A46D-206349863886} = {AD32C2ED-BF0F-4B5E-B8D5-515D29006EA9}
+		{09B3FA36-2E68-438F-88FE-AC11839DF857} = {AD32C2ED-BF0F-4B5E-B8D5-515D29006EA9}
 	EndGlobalSection
 EndGlobal
