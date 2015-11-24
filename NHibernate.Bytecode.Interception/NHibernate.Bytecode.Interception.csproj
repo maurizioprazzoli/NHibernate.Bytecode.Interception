@@ -31,6 +31,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Iesi.Collections, Version=4.0.0.0, Culture=neutral, PublicKeyToken=aa95f207798dfdb4, processorArchitecture=MSIL">
       <HintPath>..\packages\Iesi.Collections.4.0.0.4000\lib\net40\Iesi.Collections.dll</HintPath>
@@ -51,7 +54,6 @@
   <ItemGroup>
     <Compile Include="Bytecode.Interception\AbstractBytecodeProvider.cs" />
     <Compile Include="Bytecode.Interception\ActivatorObjectsFactory.cs" />
-    <Compile Include="Bytecode.Interception\CodeDom\BytecodeProviderImpl.cs" />
     <Compile Include="Bytecode.Interception\DefaultProxyFactoryFactory.cs" />
     <Compile Include="Bytecode.Interception\Lightweight\BytecodeProviderImpl.cs" />
     <Compile Include="Bytecode.Interception\Lightweight\ReflectionOptimizer.cs" />

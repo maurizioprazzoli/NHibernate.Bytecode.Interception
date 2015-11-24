@@ -63,7 +63,7 @@ namespace TestLeazyLoading
             }
 
             NHibernate.Cfg.Environment.BytecodeProvider = new NHibernate.Bytecode.Interception.Lightweight.BytecodeProviderImpl(new CustomBytecodeProviderInterceptor());
-
+            
             // Create session factory from configuration object
             var sessionFactory = cfg.BuildSessionFactory();
 
